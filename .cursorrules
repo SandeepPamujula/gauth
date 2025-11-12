@@ -1,0 +1,109 @@
+# 🧭 Cursor Rules for Next.js Google Auth Project
+
+## Goal
+Create a production-ready Next.js app with:
+- Google Authentication via NextAuth.js
+- A clean, responsive landing page
+- TypeScript, TailwindCSS, and ESLint + Prettier
+- Proper folder structure and environment variable handling
+
+## Tech Stack
+- Next.js 14 (App Router)
+- TypeScript
+- NextAuth.js (Google Provider)
+- Tailwind CSS
+- ESLint + Prettier
+
+## Folder Structure
+/
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx             # Landing page (public)
+│   ├── dashboard/
+│   │   ├── page.tsx         # Protected page (requires auth)
+│   └── api/
+│       └── auth/[...nextauth]/route.ts  # Google auth endpoint
+│
+├── components/
+│   ├── Navbar.tsx
+│   ├── Footer.tsx
+│   └── AuthButton.tsx
+│
+├── lib/
+│   └── auth.ts               # NextAuth config
+│
+├── styles/
+│   └── globals.css
+│
+├── .env.local.example
+├── next.config.js
+├── tailwind.config.js
+├── tsconfig.json
+├── package.json
+└── README.md
+
+## Environment Variables (.env.local)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+NEXTAUTH_SECRET=your-random-secret
+NEXTAUTH_URL=http://localhost:3000
+
+## NextAuth Configuration (lib/auth.ts)
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+
+export const authOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
+
+## Landing Page (app/page.tsx)
+import { AuthButton } from "@/components/AuthButton";
+
+export default function Home() {
+  return (
+    <main className="flex flex-col items-center justify-center min-h-screen text-center p-6">
+      <h1 className="text-4xl font-bold mb-4">Welcome to MyApp 🚀</h1>
+      <p className="text-gray-500 mb-8">
+        Simple, secure authentication with Google.
+      </p>
+      <AuthButton />
+    </main>
+  );
+}
+
+## Protected Page (app/dashboard/page.tsx)
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
+export default async function Dashboard() {
+  const session = await getServerSession(authOptions);
+  if (!session) redirect("/");
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold">Welcome, {session.user?.name}!</h1>
+    </div>
+  );
+}
+
+## Best Practices
+- Use TypeScript strict mode
+- Add lint + format scripts
+- Use .env.local.example for environment hints
+- Ignore .env.local in git
+- Test auth locally and on Vercel
+
+## Deployment
+- Deploy to Vercel
+- Configure Google credentials in Vercel dashboard
+- Set NEXTAUTH_URL to your production URL
