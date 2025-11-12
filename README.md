@@ -11,6 +11,7 @@ A production-ready Next.js application with Google Authentication using NextAuth
 - ⚡ Next.js 14 App Router
 - 📝 TypeScript
 - 🧹 ESLint + Prettier
+- 🧪 Jest unit tests with React Testing Library
 
 ## Getting Started
 
@@ -104,6 +105,51 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
+- `npm run test` - Run Jest tests
+- `npm run test:watch` - Run Jest tests in watch mode
+- `npm run test:coverage` - Run Jest tests with coverage report
+
+## Testing
+
+This project uses [Jest](https://jestjs.io/) and [React Testing Library](https://testing-library.com/react) for unit testing.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Test Structure
+
+Tests are located in `__tests__` directories next to the components they test:
+
+```
+components/
+├── __tests__/
+│   ├── UserGrid.test.tsx
+│   ├── AuthButton.test.tsx
+│   ├── DashboardContent.test.tsx
+│   ├── Footer.test.tsx
+│   └── Navbar.test.tsx
+lib/
+└── __tests__/
+    └── mockData.test.ts
+```
+
+### Writing Tests
+
+Tests follow the pattern:
+- Test files are named `*.test.tsx` or `*.test.ts`
+- Tests use React Testing Library for component testing
+- Mock data is used for testing components
+- Next.js specific features (router, image, next-auth) are mocked in `jest.setup.js`
 
 ## Deployment
 
