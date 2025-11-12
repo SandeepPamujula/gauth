@@ -2,25 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { UserGrid, User } from "@/components/UserGrid";
-import { fetchUsers } from "@/lib/mockData";
+import { mockUsers } from "@/lib/mockData";
 
 export function DashboardContent() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function loadUsers() {
-      try {
-        const data = await fetchUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
+    // Simulate async data loading with a delay
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setUsers(mockUsers);
+      setLoading(false);
+    }, 500);
 
-    loadUsers();
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
