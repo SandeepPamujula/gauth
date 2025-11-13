@@ -1,0 +1,22 @@
+{
+  "name": "nextjs-infrastructure",
+  "version": "1.0.0",
+  "description": "CDK infrastructure for Next.js application",
+  "main": "lib/nextjs-stack.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.120.0",
+    "constructs": "^10.3.0",
+    "source-map-support": "^0.5.21"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
+

@@ -38,3 +38,13 @@ next-env.d.ts
 # jest
 coverage
 .nyc_output
+
+# CDK
+cdk.out
+infrastructure/cdk.out
+infrastructure/node_modules
+infrastructure/*.js
+infrastructure/*.d.ts
+!infrastructure/bin/*.js
+!infrastructure/lib/*.js
+*.tsbuildinfo

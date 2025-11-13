@@ -153,6 +153,108 @@ Tests follow the pattern:
 
 ## Deployment
 
+### Deploy to AWS using CDK
+
+This project includes AWS CDK infrastructure to deploy the Next.js application to S3 and CloudFront.
+
+#### Prerequisites
+
+1. **AWS Account** with appropriate permissions
+2. **AWS CLI** installed and configured:
+   ```bash
+   aws configure
+   ```
+3. **Node.js 18+** and npm
+
+#### Setup
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   cd infrastructure
+   npm install
+   cd ..
+   ```
+
+2. **Bootstrap CDK** (only needed once per AWS account/region):
+   ```bash
+   npm run cdk:bootstrap
+   ```
+   Or manually:
+   ```bash
+   cd infrastructure
+   cdk bootstrap
+   ```
+
+3. **Build the Next.js application:**
+   ```bash
+   npm run build
+   ```
+
+#### Deployment Options
+
+**Option 1: Static Export (Recommended for S3 + CloudFront)**
+
+For a fully static site (note: API routes won't work):
+
+```bash
+./scripts/build-static.sh
+cd infrastructure
+cdk deploy
+```
+
+**Option 2: Standalone Build**
+
+For deploying with server-side features (requires additional Lambda setup):
+
+```bash
+npm run build
+cd infrastructure
+cdk deploy
+```
+
+#### Deploy
+
+```bash
+# Quick deploy (builds and deploys)
+npm run deploy
+
+# Or manually
+cd infrastructure
+cdk deploy
+```
+
+#### CDK Commands
+
+- `npm run cdk:synth` - Synthesize CloudFormation template
+- `npm run cdk:diff` - Compare deployed stack with current state
+- `npm run cdk:deploy` - Deploy the stack
+- `cdk destroy` - Destroy the stack
+
+#### After Deployment
+
+The CDK stack will output:
+- **CloudFront Distribution URL** - Your application URL
+- **S3 Bucket Name** - The bucket containing your assets
+- **Distribution ID** - CloudFront distribution ID
+
+#### Environment Variables
+
+For production, you'll need to set environment variables. Since this is a static deployment, you have a few options:
+
+1. **Use AWS Systems Manager Parameter Store** or **Secrets Manager**
+2. **Build environment variables into the static build** (not recommended for secrets)
+3. **Use Lambda@Edge** for API routes (requires additional setup)
+
+#### Important Notes
+
+- **API Routes**: Static export doesn't support API routes. For NextAuth to work, you'll need to:
+  - Use a separate API service (e.g., API Gateway + Lambda)
+  - Or deploy API routes separately using Lambda@Edge
+  - Or use a hybrid approach with serverless functions
+
+- **Environment Variables**: Static builds don't have access to runtime environment variables. You'll need to configure these at build time or use a different deployment strategy.
+
 ### Deploy to Vercel
 
 1. Push your code to GitHub
