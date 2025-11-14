@@ -48,3 +48,8 @@ infrastructure/*.d.ts
 !infrastructure/bin/*.js
 !infrastructure/lib/*.js
 *.tsbuildinfo
+
+# Build temporary files
+.api-backup
+next.config.original.js
+next.config.static.js

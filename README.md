@@ -1,10 +1,10 @@
 # MyApp - Next.js Google Authentication
 
-A production-ready Next.js application with Google Authentication using NextAuth.js.
+A production-ready Next.js application with Google Authentication using OAuth 2.0 PKCE (Proof Key for Code Exchange).
 
 ## Features
 
-- 🔐 Google Authentication via NextAuth.js
+- 🔐 Google Authentication via OAuth 2.0 PKCE (works with static exports!)
 - 🎨 Modern UI with Tailwind CSS
 - 📱 Responsive design
 - 🔒 Protected routes
@@ -12,6 +12,7 @@ A production-ready Next.js application with Google Authentication using NextAuth
 - 📝 TypeScript
 - 🧹 ESLint + Prettier
 - 🧪 Jest unit tests with React Testing Library
+- ☁️ Static export support for S3/CloudFront deployment
 
 ## Getting Started
 
@@ -40,29 +41,38 @@ cp .env.local.example .env.local
 
 4. Configure your `.env.local` file with your Google OAuth credentials:
 ```
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-NEXTAUTH_SECRET=your-random-secret
-NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
 ```
+
+**Note:** Only the Client ID is needed for PKCE flow (no Client Secret required!)
 
 ### Getting Google OAuth Credentials
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
-3. Enable the Google+ API
+3. Enable the Google+ API (or Google Identity API)
 4. Go to "Credentials" → "Create Credentials" → "OAuth client ID"
 5. Configure the OAuth consent screen
 6. Create an OAuth 2.0 Client ID (Web application)
-7. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
-8. Copy the Client ID and Client Secret to your `.env.local` file
+7. Add authorized redirect URIs:
+   - For development: `http://localhost:3000/auth/callback`
+   - For production: `https://your-domain.com/auth/callback`
+8. Copy the Client ID to your `.env.local` file as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
 
-### Generate NEXTAUTH_SECRET
+### OAuth 2.0 PKCE Flow
 
-You can generate a random secret using:
-```bash
-openssl rand -base64 32
-```
+This application uses **OAuth 2.0 PKCE (Proof Key for Code Exchange)** which:
+- ✅ Works with static site deployments (S3, CloudFront, etc.)
+- ✅ No server-side API routes required
+- ✅ More secure than traditional OAuth flows
+- ✅ No Client Secret needed (public client)
+
+The PKCE flow:
+1. Client generates a code verifier and challenge
+2. User is redirected to Google for authentication
+3. Google redirects back with an authorization code
+4. Client exchanges code + verifier for tokens
+5. Tokens are stored client-side in localStorage
 
 ### Run the Development Server
 
@@ -81,17 +91,17 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 │   ├── page.tsx                 # Landing page (public)
 │   ├── dashboard/
 │   │   └── page.tsx             # Protected page (requires auth)
-│   └── api/
-│       └── auth/
-│           └── [...nextauth]/
-│               └── route.ts    # NextAuth API route
+│   └── auth/
+│       └── callback/
+│           └── page.tsx         # OAuth callback handler
 ├── components/
 │   ├── Navbar.tsx
 │   ├── Footer.tsx
-│   ├── AuthButton.tsx
-│   └── SessionProvider.tsx
+│   └── AuthButton.tsx
 ├── lib/
-│   └── auth.ts                  # NextAuth configuration
+│   ├── pkce.ts                  # PKCE utilities
+│   ├── auth-client.tsx          # Client-side auth context
+│   └── auth.ts                  # Legacy NextAuth config (optional)
 ├── styles/
 │   └── globals.css
 └── ...
@@ -100,7 +110,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Scripts
 
 - `npm run dev` - Start development server
-- `npm run build` - Build for production
+- `npm run build` - Build for production (standalone)
+- `npm run build:static` - Build for static export (S3/CloudFront)
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
@@ -108,6 +119,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - `npm run test` - Run Jest tests
 - `npm run test:watch` - Run Jest tests in watch mode
 - `npm run test:coverage` - Run Jest tests with coverage report
+- `npm run deploy` - Build static export and deploy to AWS (CDK)
 
 ## Testing
 
@@ -195,12 +207,17 @@ This project includes AWS CDK infrastructure to deploy the Next.js application t
 
 **Option 1: Static Export (Recommended for S3 + CloudFront)**
 
-For a fully static site (note: API routes won't work):
+For a fully static site with OAuth 2.0 PKCE (authentication works!):
 
 ```bash
-./scripts/build-static.sh
+npm run build:static
 cd infrastructure
 cdk deploy
+```
+
+Or use the deploy script:
+```bash
+npm run deploy
 ```
 
 **Option 2: Standalone Build**
@@ -240,33 +257,35 @@ The CDK stack will output:
 
 #### Environment Variables
 
-For production, you'll need to set environment variables. Since this is a static deployment, you have a few options:
+For production static deployment, set the environment variable at **build time**:
 
-1. **Use AWS Systems Manager Parameter Store** or **Secrets Manager**
-2. **Build environment variables into the static build** (not recommended for secrets)
-3. **Use Lambda@Edge** for API routes (requires additional setup)
+```bash
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-production-client-id npm run build:static
+```
+
+Or set it in your CI/CD pipeline before building.
+
+**Important:** Since this is a public variable (NEXT_PUBLIC_ prefix), it will be embedded in the static build. This is safe for OAuth Client IDs as they are meant to be public.
 
 #### Important Notes
 
-- **API Routes**: Static export doesn't support API routes. For NextAuth to work, you'll need to:
-  - Use a separate API service (e.g., API Gateway + Lambda)
-  - Or deploy API routes separately using Lambda@Edge
-  - Or use a hybrid approach with serverless functions
-
-- **Environment Variables**: Static builds don't have access to runtime environment variables. You'll need to configure these at build time or use a different deployment strategy.
+- **OAuth 2.0 PKCE**: This app uses PKCE flow which works perfectly with static exports! No API routes needed.
+- **Client ID**: Only the Client ID is needed (no Client Secret required for PKCE)
+- **Redirect URIs**: Make sure to add your production domain's callback URL in Google Cloud Console:
+  - `https://your-cloudfront-domain.cloudfront.net/auth/callback`
+- **Token Storage**: Tokens are stored in browser localStorage (secure for PKCE flow)
 
 ### Deploy to Vercel
 
 1. Push your code to GitHub
 2. Import your repository in [Vercel](https://vercel.com)
-3. Add environment variables in Vercel dashboard:
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET`
-   - `NEXTAUTH_SECRET`
-   - `NEXTAUTH_URL` (your production URL)
+3. Add environment variable in Vercel dashboard:
+   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (your Google OAuth Client ID)
 4. Update Google OAuth redirect URI to include your production URL:
-   - `https://your-domain.vercel.app/api/auth/callback/google`
+   - `https://your-domain.vercel.app/auth/callback`
 5. Deploy!
+
+**Note:** Vercel supports both static exports and server-side rendering. The PKCE flow works with both!
 
 ## License
 

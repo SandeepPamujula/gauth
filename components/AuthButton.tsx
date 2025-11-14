@@ -1,13 +1,23 @@
 "use client";
 
-import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-client";
+import { initiateGoogleOAuth } from "@/lib/pkce";
 
 export function AuthButton() {
-  const { data: session, status } = useSession();
+  const { user, isLoading, signOut } = useAuth();
   const router = useRouter();
 
-  if (status === "loading") {
+  const handleSignIn = async () => {
+    try {
+      await initiateGoogleOAuth();
+    } catch (error) {
+      console.error("Failed to initiate OAuth:", error);
+      alert("Failed to start authentication. Please check your configuration.");
+    }
+  };
+
+  if (isLoading) {
     return (
       <button
         disabled
@@ -18,10 +28,10 @@ export function AuthButton() {
     );
   }
 
-  if (session) {
+  if (user) {
     return (
       <div className="flex flex-col items-center gap-4">
-        <p className="text-gray-600">Signed in as {session.user?.email}</p>
+        <p className="text-gray-600">Signed in as {user.email}</p>
         <div className="flex gap-4">
           <button
             onClick={() => router.push("/dashboard")}
@@ -30,7 +40,7 @@ export function AuthButton() {
             Go to Dashboard
           </button>
           <button
-            onClick={() => signOut()}
+            onClick={signOut}
             className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
           >
             Sign Out
@@ -42,7 +52,7 @@ export function AuthButton() {
 
   return (
     <button
-      onClick={() => signIn("google")}
+      onClick={handleSignIn}
       className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
     >
       Sign in with Google

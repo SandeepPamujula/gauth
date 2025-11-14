@@ -37,9 +37,10 @@ cdk bootstrap || echo "CDK already bootstrapped or bootstrap failed"
 # Go back to root
 cd ..
 
-# Build Next.js application
-echo "Building Next.js application..."
-npm run build
+# Build Next.js application for static export
+echo "Building Next.js application for static export..."
+chmod +x scripts/build-static.sh
+./scripts/build-static.sh
 
 # Deploy to AWS
 echo "Deploying to AWS..."

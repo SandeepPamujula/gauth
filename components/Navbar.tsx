@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/auth-client";
 
 export function Navbar() {
-  const { data: session } = useSession();
+  const { isAuthenticated } = useAuth();
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -16,7 +16,7 @@ export function Navbar() {
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            {session && (
+            {isAuthenticated && (
               <Link
                 href="/dashboard"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"

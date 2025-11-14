@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:static": "./scripts/build-static.sh",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
@@ -17,7 +18,7 @@
     "cdk:synth": "cd infrastructure && cdk synth",
     "cdk:diff": "cd infrastructure && cdk diff",
     "cdk:bootstrap": "cd infrastructure && cdk bootstrap",
-    "deploy": "npm run build && cd infrastructure && cdk deploy"
+    "deploy": "./scripts/deploy.sh"
   },
   "dependencies": {
     "next": "^14.2.0",

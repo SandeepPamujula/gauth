@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  output: "export",
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -10,7 +11,7 @@ const nextConfig = {
       },
     ],
   },
+  trailingSlash: true,
 };
 
 module.exports = nextConfig;
-
